@@ -2,7 +2,7 @@
 Provides a client side generation of PDF (.pdf) file from HTML string.
 
 [![Build Status](https://travis-ci.org/zsusac/ReactHTMLToPDF.svg?branch=master)](https://travis-ci.org/zsusac/ReactHTMLToPDF)
-
+[![Coverage Status](https://coveralls.io/repos/github/zsusac/ReactHTMLToPDF/badge.svg?branch=master)](https://coveralls.io/github/zsusac/ReactHTMLToPDF?branch=master)
 ## Installation
 
 ```
