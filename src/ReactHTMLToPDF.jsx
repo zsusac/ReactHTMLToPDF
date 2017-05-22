@@ -5,10 +5,10 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const propTypes = {
+  html: PropTypes.string.isRequired,
   id: PropTypes.string,
   className: PropTypes.string,
   buttonText: PropTypes.string,
-  html: PropTypes.string,
   openBlank: PropTypes.bool,
 };
 
@@ -16,7 +16,6 @@ const defaultProps = {
   id: 'button-download-as-pdf',
   className: 'button-download-pdf',
   buttonText: 'Download as PDF',
-  html: '<html><head></head><body>ReactHTMLToPDF</body></html>',
   openBlank: true,
 };
 
@@ -82,49 +81,30 @@ class ReactHTMLToPDF extends Component {
     };
     const iframe = document.createElement('iframe');
 
-    if (typeof html === 'string') {
-      // remove all scripts
-      html = html.replace(
-        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-        '',
-      );
+    // remove all scripts
+    html = html.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      '',
+    );
 
-      document.body.appendChild(iframe);
-      let doc;
-      doc = iframe.contentDocument;
-      if (doc == undefined || doc == null) {
-        doc = iframe.contentWindow.document;
-      }
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
 
-      doc.open();
-      doc.write(html);
-      doc.close();
+    doc.open();
+    doc.write(html);
+    doc.close();
 
-      const promise = html2canvas(doc.body, {
-        canvas,
-        onrendered: (canvas) => {
-          if (callback) {
-            if (iframe) {
-              iframe.parentElement.removeChild(iframe);
-            }
-            callback(pdf);
+    const promise = html2canvas(doc.body, {
+      canvas,
+      onrendered: (canvas) => {
+        if (callback) {
+          if (iframe) {
+            iframe.parentElement.removeChild(iframe);
           }
-        },
-      });
-    } else {
-      const body = html;
-      const promise = html2canvas(body, {
-        canvas,
-        onrendered: (canvas) => {
-          if (callback) {
-            if (iframe) {
-              iframe.parentElement.removeChild(iframe);
-            }
-            callback(pdf);
-          }
-        },
-      });
-    }
+          callback(pdf);
+        }
+      },
+    });
   }
 
   constructor(props) {
@@ -133,15 +113,26 @@ class ReactHTMLToPDF extends Component {
   }
   componentDidMount() {}
   handleDownload() {
+    if (this.props.html.length <= 0) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Provided empty html string');
+        return;
+      }
+    }
     const pdf = new jsPDF('p', 'pt', 'a4');
     const canvas = pdf.canvas;
     canvas.height = 72 * 11;
     canvas.width = 72 * 8.5;
 
-    ReactHTMLToPDF.html2pdf(this.props.html, pdf, (pdfOutput) => {
-      if (this.props.openBlank) {
+    if (this.props.openBlank) {
+      ReactHTMLToPDF.html2pdf(this.props.html, pdf, (pdfOutput) => {
         pdfOutput.output('dataurlnewwindow');
-      }
+      });
+
+      return;
+    }
+
+    ReactHTMLToPDF.html2pdf(this.props.html, pdf, (pdfOutput) => {
       pdfOutput.save();
     });
   }
